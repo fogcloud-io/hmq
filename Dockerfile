@@ -1,12 +1,13 @@
-FROM golang:1.17 as builder
-WORKDIR /go/src/github.com/fhmq/hmq
-COPY . .
-RUN CGO_ENABLED=0 go build -o hmq -a -ldflags '-extldflags "-static"' .
+FROM golang:1.17 AS builder
+WORKDIR /build
+COPY . /build
+RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && \
+  go env -w GOSUMDB=off && go env
+RUN CGO_ENABLED=0 go build -o ./dist/hmq main.go
 
-
-FROM alpine
-WORKDIR /
-COPY --from=builder /go/src/github.com/fhmq/hmq/hmq .
-EXPOSE 1883
-
-CMD ["/hmq"]
+FROM alpine AS hmq
+COPY --from=builder /build/dist/hmq /usr/bin/hmq
+RUN echo "http://mirrors.aliyun.com/alpine/v3.10/main/" > /etc/apk/repositories \
+    && apk add tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone \
+CMD ["hmq", "-c", "/etc/hmq/hmq.config"]
