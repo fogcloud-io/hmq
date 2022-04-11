@@ -159,7 +159,8 @@ func (a *authHTTP) CheckACL(action, clientID, username, ip, topic string) bool {
 		log.Error("get acl: ", zap.Error(err))
 		return false
 	}
-	// fmt.Println("req:", req)
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
 	resp, err := a.client.Do(req)
 	if err != nil {
 		log.Error("request acl: ", zap.Error(err))
