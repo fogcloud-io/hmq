@@ -1,8 +1,9 @@
 FROM golang:1.17 AS builder
 WORKDIR /build
 COPY . /build
-RUN go env -w GO111MODULE=on && go env -w GOPROXY=https://goproxy.cn,direct && \
-  go env -w GOSUMDB=off && go env
+RUN go env -w GO111MODULE=on && \
+# go env -w GOPROXY=https://goproxy.cn,direct && \
+go env -w GOSUMDB=off && go env
 RUN CGO_ENABLED=0 go build -o ./dist/hmq main.go
 
 FROM alpine AS hmq
